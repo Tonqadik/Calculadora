@@ -14,3 +14,4 @@ C:\c#proyectos\Calculadora\obj\Debug\net8.0-windows\Calculadora.pdb
 C:\c#proyectos\Calculadora\obj\Debug\net8.0-windows\Calculadora.genruntimeconfig.cache
 C:\c#proyectos\Calculadora\obj\Debug\net8.0-windows\ref\Calculadora.dll
 C:\c#proyectos\Calculadora\obj\Debug\net8.0-windows\Calculadora.Log.resources
+C:\c#proyectos\Calculadora\obj\Debug\net8.0-windows\Calculadora.sourcelink.json

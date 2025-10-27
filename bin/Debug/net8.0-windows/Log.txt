@@ -1,9 +1,6 @@
-10/26/2025 1:32:25 PM -INFO- Programa iniciado
-10/26/2025 1:32:25 PM -INFO- Form cargado
-10/26/2025 1:32:27 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:32:59 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:33:08 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:33:19 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:33:33 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:33:43 PM -INFO- Calculando operaciones aritméticas
-10/26/2025 1:34:10 PM -INFO- Calculando operaciones aritméticas
+10/26/2025 11:06:47 PM -INFO-  Programa iniciado
+10/26/2025 11:06:47 PM -DEBUG- Inicializando variables del forms
+10/26/2025 11:06:47 PM -INFO-  Form cargado
+10/26/2025 11:06:50 PM -INFO-  Calculando operación aritmética
+10/26/2025 11:06:50 PM -ERROR- Ha ocurrido un error linea:    at System.Collections.Generic.List`1.get_Item(Int32 index)
+   at Calculadora.Form1.btnIgual_Click(Object sender, EventArgs e) in C:\c#proyectos\Calculadora\Form1.cs:line 242 Error: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')

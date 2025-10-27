@@ -28,21 +28,20 @@ namespace Calculadora
         // Añade una línea al log, junto con el tipo
         public static void AddLinea(string linea, TipoLog tipo)
         {
-
-            System.IO.File.AppendAllText("Log.txt", $"{DateTime.Now.ToString()} -{tipo.ToString()}- {linea}\n");
+            System.IO.File.AppendAllText("Log.txt", $"{DateTime.Now.ToString()}" + $" -{tipo}-".PadRight(8)  + $" {linea}\n");
         }
 
         // Añade una línea al log
         public static void AddLinea(string linea)
         {
 
-            System.IO.File.AppendAllText("Log.txt", $"{DateTime.Now.ToString()} -INFO- {linea}\n");
+            System.IO.File.AppendAllText("Log.txt", $"{DateTime.Now.ToString()} -INFO-  {linea}\n");
         }
 
         // Se crea el archivo log
         public static void IniciarLog()
         {
-            System.IO.File.WriteAllText("Log.txt", ""); // Crea el archivo log, y en caso de estar, entonces borra su contenido
+            System.IO.File.WriteAllText("Log.txt", ""); // Crea el archivo log, en caso de existir, entonces borra su contenido
             Log.AddLinea("Programa iniciado");
         }
 
@@ -55,17 +54,20 @@ namespace Calculadora
 
         public Form1()
         {
+            // Se inicializa los componentes del forms
             InitializeComponent();
             Log.IniciarLog();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            Log.AddLinea("Inicializando variables del forms", TipoLog.DEBUG);
             this.AcceptButton = btnIgual;
             this.CancelButton = btnC;
-            Log.AddLinea("Form cargado");
+            Log.AddLinea("Form cargado", TipoLog.INFO);
         }
 
+        //********************* INPUTS BOTONES DEL FORMS **********************
         private void btn1_Click(object sender, EventArgs e)
         {
             if (txtDisplayEstaLLeno()) return ;
@@ -145,16 +147,15 @@ namespace Calculadora
             
         }
 
+        //********************* INPUTS BOTONES NÚMEROS DEL FORMS **************
         private void btnPunto_Click(object sender, EventArgs e)
         {
-            if(AnteriorOperador(getTexto()) == decimalOp) return;
+            // En caso de que el anterior simbolo sea el punto, entonces no lo agrega.
+            if(AnteriorSimbolo(getTexto()) == decimalOp) return;
             if (txtDisplayEstaLLeno()) return;
             if (getTextoLength() == 0) txtDisplay.Text += "0";
 
-
             txtDisplay.Text += decimalOp;
-
-
         }
 
         private void btnBack_Click(object sender, EventArgs e)
@@ -163,8 +164,7 @@ namespace Calculadora
 
             setEstadoBtnOperadores(true);
             txtDisplay.Text = getTexto().Substring(0, getTextoLength() - 1);
-            if (txtEstaVacio()) txtDisplay.Text += "0";
-            
+            if (txtEstaVacio()) txtDisplay.Text += "0";          
 
         }
 
@@ -217,33 +217,47 @@ namespace Calculadora
             
         }
 
+        // Al darle al botón igual se calcula la operaciones aritméticas, primero se hacen las multiplicaciones y divisiones y después las sumas y restas.
         private void btnIgual_Click(object sender, EventArgs e)
-        {
+        {        
             try
             {
                 // Validaciones 
                 if (txtEstaVacio()) { mostrarErrorEstado("No hay ningún operador"); return; }
-                if (AnteriorOperador(getTexto()) == ' ') { mostrarErrorEstado("No se puede hacer una operación sin operador"); return; }
+                if (AnteriorSimbolo(getTexto()) == ' ') { mostrarErrorEstado("No se puede hacer una operación sin operador"); return; }
                 if (UltimoCharEsOperador()) { mostrarErrorEstado("El último carácter es un operador, es necesario borrarlo o insertar otro número"); return; }
                 List<float> Numeros = new List<float>(Array.ConvertAll(getTexto().Split(new Char[] { '*', '/', '-', '+' }), float.Parse));
                 List<string> operadores = getTexto().Split(new Char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', decimalOp }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                Log.AddLinea("Calculando operaciones aritméticas");
+                List<string> operadores2 = operadores;
+
+                Log.AddLinea("Calculando operación aritmética", TipoLog.INFO);
 
                 // Operaciones aritméticas multiplicacion y division
-                for(int i = 0; i < operadores.Count(); i++)
+                int idx = 0;
+                foreach (string c in operadores)
                 {
-                    if (operadores[i] == "*" || operadores[i] == "/")
+                    if (c == "*" || c == "/")
                     {
                         float res = 0;
-                        res = realizarOperacionMat(Numeros[i], Numeros[i + 1], getTipoOperacion(Numeros[i].ToString() + operadores[i] + Numeros[i + 1]));
-                        Numeros.Remove(Numeros[i + 1]);
-                        Numeros[i] = res;
+                        res = realizarOperacionMat(
+                            Numeros[idx], 
+                            Numeros[idx + 1], 
+                            getTipoOperacion(
+                                Numeros[idx].ToString() + c + Numeros[idx + 1]
+                                )
+                        );
+                        Numeros.Remove(Numeros[idx]);
+                        Numeros.Remove(Numeros[idx]);
+                        Numeros.Insert(0, res);
+                        idx--;
                     }
-
+                    // El indice solo avanza si se ha hecho alguna operación, en caso contrario no se mueve
+                    idx++;
                 }
 
-                // Se obtiene solo los operadores de suma y resta
+                // Se obtiene primero solo los operadores de suma y resta
                 operadores = operadores.Where(x => x == "+" || x== "-").ToList();
+
 
                 // Operaciones aritméticas suma y resta
                 foreach (string c in operadores)
@@ -255,17 +269,20 @@ namespace Calculadora
                     Numeros.Insert(0, res);
 
                 }
+                
 
+                Log.AddLinea("Cálculo de la Operación aritmética terminada", TipoLog.INFO);
                 // Se setea el texbox con su resultado
                 txtDisplay.Text = String.Format("{0:0.#}", Numeros[0]);
             }
-            catch (DivideByZeroException ex) { mostrarErrorEstado("No se puede dividir por cero"); Log.AddLinea("Se encontro un error al dividir por cero",TipoLog.ERROR); }
-            catch (NotFiniteNumberException ef) { mostrarErrorEstado("El resultado es infinito"); Log.AddLinea("El resultado de la operación es infinito", TipoLog.ERROR); }
-            catch (ArithmeticException em) { mostrarErrorEstado("Los operadores o resultado no son un número"); Log.AddLinea("Ocurrio un error al intentar interpretar el número", TipoLog.ERROR); }
-            catch (Exception ep) { mostrarErrorEstado("Ha ocurrido un error: " + ep.Message); Log.AddLinea("Se encontro un error inesperado : " + ep.Message, TipoLog.ERROR); }
+            catch (DivideByZeroException ex) { mostrarErrorEstado("No se puede dividir por cero" + ex.StackTrace + " Error: " + ex.Message); }
+            catch (NotFiniteNumberException ef) { mostrarErrorEstado("El resultado es infinito" + ef.StackTrace + " Error: " + ef.Message); }
+            catch (ArithmeticException em) { mostrarErrorEstado("Los operadores o resultado no son un número " + em.StackTrace +  " Error: "+ em.Message  ); }
+            catch (Exception ep) { mostrarErrorEstado("Ha ocurrido un error linea: " + ep.StackTrace +  " Error: "+ ep.Message ); }
 
         }
 
+        //*********************** MÉTODOS DEL FORMS ***************************
 
         private string getTexto() => txtDisplay.Text;
         
@@ -274,7 +291,7 @@ namespace Calculadora
         
         private void mostrarErrorEstado(string msj)
         {
-            Log.AddLinea(msj, TipoLog.WARN);
+            Log.AddLinea(msj, TipoLog.ERROR);
             lblEstado.ForeColor = Color.Red;
             lblEstado.Text = msj;
         }
@@ -304,7 +321,7 @@ namespace Calculadora
 
         private float realizarOperacionMat(float n1, float n2, Operacion tipo)
         {
-            if (n2 == 0 && tipo == Operacion.DIVISION) { throw new DivideByZeroException("Error, no se puede divir por 0"); }
+            if (n2 == 0 && tipo == Operacion.DIVISION) throw new DivideByZeroException("Error, no se puede divir por 0");
             float num1 = n1;
             float num2 = n2;
             float resultado = 0;
@@ -336,22 +353,42 @@ namespace Calculadora
             return resultado;
         }
 
-        private char AnteriorOperador(string str)
+        // Obtiene el último simbolo añadido
+        private char AnteriorSimbolo(string str)
         { 
-            char[] c = str.ToCharArray();
+            List<char> c = str.ToList();
 
-            for(int i = c.Length - 1; i > 0 ; i--)
+            // Se hace un for loop reverso, para encontrar el último simbolo del text display agregado
+            for (int i = c.Count - 1; i > 0 ; i--)
             {
                 if (Array.IndexOf(new char[] { '*', '/', '+', '-', decimalOp }, c[i]) != -1) return c[i];
             }
             return ' ';
         }
 
-        private bool UltimoCharEsOperador()
+        // Obtiene el indice del último simbolo añadido
+        private int AnteriorSimboloIdx(string str)
         {
-            return getTexto().Last().ToString().IndexOfAny("*/-+".ToCharArray()) != -1;
+            List<char> c = str.ToList();
+
+            // Se hace un for loop reverso, para encontrar el último simbolo del text display agregado
+            for (int i = c.Count - 1; i > 0; i--)
+            {
+                if (Array.IndexOf(new char[] { '*', '/', '+', '-', decimalOp }, c[i]) != -1) return i;
+            }
+            return -1;
         }
 
+        private char PenultimoSimbolo(string str)
+        {
+            int ult = AnteriorSimboloIdx(str);
+            return AnteriorSimbolo(str.Substring(0,ult));
+        }
+
+
+
+        private bool UltimoCharEsOperador() => getTexto().Last().ToString().IndexOfAny("*/-+".ToCharArray()) != -1;
+        
         private void setEstadoBtnOperadores(bool est)
         {
             lblEstado.Text = "";
